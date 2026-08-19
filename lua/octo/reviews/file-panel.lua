@@ -471,6 +471,9 @@ function M.next_thread()
   end
   if candidate < math.huge then
     vim.cmd(":" .. candidate)
+    if config.values.reviews.show_threads_on_jump then
+      require("octo.reviews.thread-panel").show_review_threads(false)
+    end
   end
 end
 
@@ -488,6 +491,9 @@ function M.prev_thread()
   end
   if candidate > -1 then
     vim.cmd(":" .. candidate)
+    if config.values.reviews.show_threads_on_jump then
+      require("octo.reviews.thread-panel").show_review_threads(false)
+    end
   end
 end
 

@@ -9,69 +9,30 @@ local M = {}
 function M.show_review_threads(jump_to_buffer)
   -- This function is called from a very broad CursorHold event
   -- Check if we are in a diff buffer and otherwise return early
-  local bufnr = vim.api.nvim_get_current_buf()
-  local split, path = utils.get_split_and_path(bufnr)
-  if not split or not path then
-    -- not on a diff buffer
+  local bufinfo = M.get_buf_info()
+  if bufinfo == nil then
     return
   end
-
-  local review = require("octo.reviews").get_current_review()
-  if not review then
-    -- cant find an active review
-    return
-  end
-
-  local file = review.layout:get_current_file()
-  if not file then
-    -- cant find the changed file metadata
-    return
-  end
-
-  local pr = file.pull_request
-  local review_level = review:get_level()
-  ---@type octo.ReviewThread[]
-  local threads = vim.tbl_values(review.threads)
-  local line = vim.api.nvim_win_get_cursor(0)[1]
 
   -- get threads associated with current line
-  local threads_at_cursor = {}
-  for _, thread in ipairs(threads) do
-    if
-      review_level == "PR"
-      and utils.is_thread_placed_in_buffer(thread, bufnr)
-      and thread.startLine <= line
-      and thread.line >= line
-    then
-      table.insert(threads_at_cursor, thread)
-    elseif review_level == "COMMIT" then
-      for _, comment in ipairs(thread.comments.nodes) do
-        if
-          review.layout.right.commit == comment.originalCommit.oid
-          and utils.is_thread_placed_in_buffer(thread, bufnr)
-          and thread.originalLine == line
-        then
-          table.insert(threads_at_cursor, thread)
-          break
-        end
-      end
-    end
-  end
+  local threads_at_cursor = M.get_review_threads(bufinfo.review, bufinfo.bufnr)
 
   -- render thread buffer if there are threads at the current line
+  local pr = bufinfo.file.pull_request
   if #threads_at_cursor > 0 then
-    review.layout:ensure_layout()
-    local alt_win = file:get_alternative_win(split)
+    bufinfo.review.layout:ensure_layout()
+    local alt_win = bufinfo.file:get_alternative_win(bufinfo.split)
     if vim.api.nvim_win_is_valid(alt_win) then
-      local thread_buffer = M.create_thread_buffer(threads_at_cursor, pr.repo, pr.number, split, file.path)
+      local thread_buffer = M.create_thread_buffer(threads_at_cursor, pr.repo, pr.number, bufinfo.split,
+        bufinfo.file.path)
       if thread_buffer then
-        table.insert(file.associated_bufs, thread_buffer.bufnr)
+        table.insert(bufinfo.file.associated_bufs, thread_buffer.bufnr)
         vim.api.nvim_win_set_buf(alt_win, thread_buffer.bufnr)
         thread_buffer:configure()
 
         vim.keymap.set("n", "q", function()
-          M.hide_thread_buffer(split, file)
-          local file_win = file:get_win(split)
+          M.hide_thread_buffer(bufinfo.split, bufinfo.file)
+          local file_win = bufinfo.file:get_win(bufinfo.split)
           if vim.api.nvim_win_is_valid(file_win) then
             vim.api.nvim_set_current_win(file_win)
           end
@@ -88,8 +49,78 @@ function M.show_review_threads(jump_to_buffer)
     end
   else
     -- no threads at the current line, hide the thread buffer
-    M.hide_thread_buffer(split, file)
+    M.hide_thread_buffer(bufinfo.split, bufinfo.file)
   end
+end
+
+---Get review threads under cursor if there are any
+---@param review Review
+---@param bufnr number
+---@return octo.ReviewThread[]
+function M.get_review_threads(review, bufnr)
+  local review_level = review:get_level()
+  ---@type octo.ReviewThread[]
+  local threads = vim.tbl_values(review.threads)
+  local line = vim.api.nvim_win_get_cursor(0)[1]
+
+  -- get threads associated with current line
+  local threads_at_cursor = {}
+  for _, thread in ipairs(threads) do
+    if
+        review_level == "PR"
+        and utils.is_thread_placed_in_buffer(thread, bufnr)
+        and thread.startLine <= line
+        and thread.line >= line
+    then
+      table.insert(threads_at_cursor, thread)
+    elseif review_level == "COMMIT" then
+      for _, comment in ipairs(thread.comments.nodes) do
+        if
+            review.layout.right.commit == comment.originalCommit.oid
+            and utils.is_thread_placed_in_buffer(thread, bufnr)
+            and thread.originalLine == line
+        then
+          table.insert(threads_at_cursor, thread)
+          break
+        end
+      end
+    end
+  end
+
+  return threads_at_cursor
+end
+
+---@class BufInfo
+---@field bufnr number
+---@field split string
+---@field review Review
+---@field file FileEntry
+
+---Show review threads under cursor if there are any
+---@return BufInfo | nil
+function M.get_buf_info()
+  -- This function is called from a very broad CursorHold event
+  -- Check if we are in a diff buffer and otherwise return early
+  local bufnr = vim.api.nvim_get_current_buf()
+  local split, path = utils.get_split_and_path(bufnr)
+  if not split or not path then
+    -- not on a diff buffer
+    return nil
+  end
+
+  local review = require("octo.reviews").get_current_review()
+  if not review then
+    -- cant find an active review
+    return nil
+  end
+
+  local file = review.layout:get_current_file()
+  if not file then
+    -- cant find the changed file metadata
+    return nil
+  end
+
+  return { bufnr = bufnr, split = split, review = review, file = file }
 end
 
 ---@param split OctoSplit
