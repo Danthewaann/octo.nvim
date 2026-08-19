@@ -23,8 +23,8 @@ function M.show_review_threads(jump_to_buffer)
     bufinfo.review.layout:ensure_layout()
     local alt_win = bufinfo.file:get_alternative_win(bufinfo.split)
     if vim.api.nvim_win_is_valid(alt_win) then
-      local thread_buffer = M.create_thread_buffer(threads_at_cursor, pr.repo, pr.number, bufinfo.split,
-        bufinfo.file.path)
+      local thread_buffer =
+        M.create_thread_buffer(threads_at_cursor, pr.repo, pr.number, bufinfo.split, bufinfo.file.path)
       if thread_buffer then
         table.insert(bufinfo.file.associated_bufs, thread_buffer.bufnr)
         vim.api.nvim_win_set_buf(alt_win, thread_buffer.bufnr)
@@ -67,18 +67,18 @@ function M.get_review_threads(review, bufnr)
   local threads_at_cursor = {}
   for _, thread in ipairs(threads) do
     if
-        review_level == "PR"
-        and utils.is_thread_placed_in_buffer(thread, bufnr)
-        and thread.startLine <= line
-        and thread.line >= line
+      review_level == "PR"
+      and utils.is_thread_placed_in_buffer(thread, bufnr)
+      and thread.startLine <= line
+      and thread.line >= line
     then
       table.insert(threads_at_cursor, thread)
     elseif review_level == "COMMIT" then
       for _, comment in ipairs(thread.comments.nodes) do
         if
-            review.layout.right.commit == comment.originalCommit.oid
-            and utils.is_thread_placed_in_buffer(thread, bufnr)
-            and thread.originalLine == line
+          review.layout.right.commit == comment.originalCommit.oid
+          and utils.is_thread_placed_in_buffer(thread, bufnr)
+          and thread.originalLine == line
         then
           table.insert(threads_at_cursor, thread)
           break
