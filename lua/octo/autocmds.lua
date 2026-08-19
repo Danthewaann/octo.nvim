@@ -72,6 +72,23 @@ function M.setup()
       end,
     })
   end
+  if config.values.reviews.show_threads_on_jump then
+    define({ "CursorMoved" }, {
+      group = "octo_autocmds",
+      pattern = { "*" },
+      callback = function()
+        local bufinfo = require("octo.reviews.thread-panel").get_buf_info()
+        if bufinfo == nil then
+          return
+        end
+
+        local threads_at_cursor = require("octo.reviews.thread-panel").get_review_threads(bufinfo.review, bufinfo.bufnr)
+        if #threads_at_cursor == 0 then
+          require("octo.reviews.thread-panel").hide_thread_buffer(bufinfo.split, bufinfo.file)
+        end
+      end,
+    })
+  end
   define({ "TabClosed" }, {
     group = "octo_autocmds",
     pattern = { "*" },

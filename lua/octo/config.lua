@@ -74,6 +74,7 @@ local M = {}
 ---@field order_by OctoConfigOrderBy
 
 ---@class OctoConfigReviews
+---@field show_threads_on_jump boolean
 ---@field auto_show_threads boolean
 ---@field focus OctoSplit
 ---@field show_virtual_text boolean
@@ -292,6 +293,7 @@ function M.get_default_values()
       current_repo_only = false, -- show notifications for current repo only
     },
     reviews = {
+      show_threads_on_jump = false, -- automatically show comment threads on thread jump via ]t or [t
       auto_show_threads = true, -- automatically show comment threads on cursor move
       focus = "right", -- focus right buffer on diff open
       show_virtual_text = true, -- show virtual text with comment count and date
@@ -698,6 +700,7 @@ function M.validate_config()
       return
     end
 
+    validate_type(config.reviews.auto_show_threads, "reviews.show_threads_on_jump", "boolean")
     validate_type(config.reviews.auto_show_threads, "reviews.auto_show_threads", "boolean")
     validate_string_enum(config.reviews.focus, "reviews.focus", { "right", "left" })
   end

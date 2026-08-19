@@ -310,6 +310,7 @@ require"octo".setup {
     current_repo_only = false, -- show notifications for current repo only
   },
   reviews = {
+    show_threads_on_jump = false, -- automatically show comment threads on thread jump via ]t or [t
     auto_show_threads = true, -- automatically show comment threads on cursor move
     focus = "right", -- focus right buffer on diff open
     show_virtual_text = true, -- show virtual text with comment count and date
