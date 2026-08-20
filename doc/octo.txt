@@ -585,6 +585,8 @@ HIGHLIGHT GROUPS                                *octo-highlights*
   `OctoStateCommented`          `Normal`
   `OctoStateDismissed`          `OctoStateClosed`
   `OctoStateSkipped`            `Comment`
+  `OctoReviewDiffDelete`        `DiffDelete`
+  `OctoReviewDiffAdd`           `DiffAdd
   `OctoReviewDiffDeleteText`    GitHub color
   `OctoReviewDiffAddText`       GitHub color
 
