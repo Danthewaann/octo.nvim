@@ -187,7 +187,6 @@ For a basic installation using [`lazy.nvim`](https://lazy.folke.io/), try:
 Below is the full _default_ configuration for `octo.nvim`.
 
 <!-- BEGIN_CONFIG -->
-
 ```lua
 require"octo".setup {
   picker = "telescope", -- or "fzf-lua" or "snacks" or "default"
@@ -587,7 +586,6 @@ require"octo".setup {
   },
 }
 ```
-
 <!-- END_CONFIG -->
 
 ### File panel icons
